@@ -1,5 +1,6 @@
 package com.store.trade;
 
+import com.store.trade.constant.TradeMessagesConstants;
 import com.store.trade.dto.*;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,8 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = TradeStoreApplication.class)
 @RunWith(SpringRunner.class)
@@ -55,6 +55,19 @@ public class TradeStoreManagementControllerIntegrationTest {
     }
 
     @Test
+    public void getTradeByIdNotFoundException() {
+
+        ResponseEntity<TradeStoreResponse> responseEntity = this.restTemplate.withBasicAuth("test", "test")
+                .getForEntity(baseUrl + port + "/trades/T2", TradeStoreResponse.class);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(Status.FAILURE, responseEntity.getBody().getResponseStatus().getStatus());
+        assertNull(responseEntity.getBody().getTradeStore());
+        assertEquals(TradeMessagesConstants.TRADE_NOT_FOUND_MSG, responseEntity.getBody().getResponseStatus().getMessageList().get(0).getMessage());
+
+    }
+
+    @Test
     public void saveTrade() {
 
         TradeStoreRequest tradeStoreRequest = new TradeStoreRequest(new TradeStore("T1",1,"CP-4","B3","2022-05-20","2022-05-20","N"));
@@ -65,6 +78,7 @@ public class TradeStoreManagementControllerIntegrationTest {
         assertEquals(Status.SUCCESS, responseEntity.getBody().getResponseStatus().getStatus());
         assertNotNull(responseEntity.getBody().getTradeStore());
     }
+
 
 
 }

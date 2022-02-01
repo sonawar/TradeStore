@@ -1,5 +1,6 @@
 package com.store.trade.service;
 
+import com.store.trade.constant.TradeMessagesConstants;
 import com.store.trade.dto.Status;
 import com.store.trade.dto.TradeStore;
 import com.store.trade.dto.TradeStoreRequest;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -46,13 +48,21 @@ public class TradeStoreManagementServiceMockTest {
     }
 
     @Test
+    public void getTradeByIdExceptionTest() {
+        when(tradeStoreManagementRepository.findById("T1")).thenReturn(Optional.empty());
+        assertNull(tradeStoreManagementService.getTrade("T1").getTradeStore());
+        assertEquals(TradeMessagesConstants.TRADE_NOT_FOUND_MSG, tradeStoreManagementService.getTrade("T1").getResponseStatus().getMessageList().get(0).getMessage());
+
+    }
+
+    @Test
     public void saveTradeLowerVersionTradeTest() throws ParseException {
 
         when(tradeStoreManagementRepository.findById("T1")).thenReturn(Optional
                 .of(new Trade("T1",2,"CP-4","B3","2022-05-20","2022-05-20","N")));
 
         TradeStoreRequest tradeStoreRequest = new TradeStoreRequest(new TradeStore("T1",1,"CP-4","B3","2022-05-20","2022-05-20","N"));
-        assertEquals("Invalid Request. Trade Version is lower than current.",tradeStoreManagementService.saveTrade(tradeStoreRequest).getResponseStatus().getMessageList().get(0).getMessage());
+        assertEquals(TradeMessagesConstants.LOWER_VERSION_MSG,tradeStoreManagementService.saveTrade(tradeStoreRequest).getResponseStatus().getMessageList().get(0).getMessage());
     }
 
     @Test
@@ -62,7 +72,7 @@ public class TradeStoreManagementServiceMockTest {
                 .of(new Trade("T1",2,"CP-4","B3","2022-05-20","2022-05-20","N")));
 
         TradeStoreRequest tradeStoreRequest = new TradeStoreRequest(new TradeStore("T1",2,"CP-4","B3","2021-05-20","2022-05-20","N"));
-        assertEquals("Invalid Request. Trade Maturity Date is earlier than current.",tradeStoreManagementService.saveTrade(tradeStoreRequest).getResponseStatus().getMessageList().get(0).getMessage());
+        assertEquals(TradeMessagesConstants.MATURITY_DATE_MSG,tradeStoreManagementService.saveTrade(tradeStoreRequest).getResponseStatus().getMessageList().get(0).getMessage());
     }
 
     @Test

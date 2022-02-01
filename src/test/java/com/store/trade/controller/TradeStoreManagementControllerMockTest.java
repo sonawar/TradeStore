@@ -1,5 +1,6 @@
 package com.store.trade.controller;
 
+import com.store.trade.constant.TradeMessagesConstants;
 import com.store.trade.dto.*;
 import com.store.trade.service.TradeStoreManagementService;
 import org.junit.Before;
@@ -19,10 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -76,7 +73,7 @@ public class TradeStoreManagementControllerMockTest {
         List<TradeStore> tradeStoreList = Stream.of(new TradeStore("T1",2,"CP-4","B3","2022-05-20","2022-05-20","N")).collect(Collectors.toList());
 
         List<Message> messageList = new ArrayList<>();
-        messageList.add(new Message("Trade updated successfully.","200"));
+        messageList.add(new Message(TradeMessagesConstants.TRADE_UPDATE_SUCCESS_MSG,"200"));
 
         String content = "{\n" +
                 "  \"tradeStore\":\n" +

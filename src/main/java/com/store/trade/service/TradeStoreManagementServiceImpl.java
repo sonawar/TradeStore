@@ -1,5 +1,6 @@
 package com.store.trade.service;
 
+import com.store.trade.constant.TradeMessagesConstants;
 import com.store.trade.dto.*;
 import com.store.trade.dto.Message;
 import com.store.trade.entity.Trade;
@@ -7,15 +8,14 @@ import com.store.trade.exception.LowerVersionTradeException;
 import com.store.trade.mapper.TradeRequestMapper;
 import com.store.trade.mapper.TradeStoreResponseMapper;
 import com.store.trade.repository.TradeStoreManagementRepository;
+import com.store.trade.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -43,7 +43,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
             tradeStoreResponse =  TradeStoreResponseMapper.mapTradeResponse(trade.get());
         }else{
             messageList = new ArrayList<>();
-            messageList.add(new Message("Cannot find trade with given id.","400"));
+            messageList.add(new Message(TradeMessagesConstants.TRADE_NOT_FOUND_MSG,"400"));
             tradeStoreResponse = new TradeStoreResponse(null,new ResponseStatus(Status.FAILURE,messageList));
         }
         return tradeStoreResponse;
@@ -81,7 +81,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
 
             if(trade.get().getVersion() > tradeStoreRequest.getTradeStore().getVersion()){
                 try {
-                    throw new LowerVersionTradeException("Invalid Request. Trade Version is lower than current.");
+                    throw new LowerVersionTradeException(TradeMessagesConstants.LOWER_VERSION_MSG);
 
                 } catch (LowerVersionTradeException e) {
                     messageList.add(new Message(e.getMessage(),"400"));
@@ -92,8 +92,8 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
 
             }
 
-            if(!validateMaturityDate(tradeStoreRequest.getTradeStore())){
-                Message error = new Message("Invalid Request. Trade Maturity Date is earlier than current.","400");
+            if(!ValidationUtils.validateMaturityDate(tradeStoreRequest.getTradeStore())){
+                Message error = new Message(TradeMessagesConstants.MATURITY_DATE_MSG,"400");
                 messageList.add(error);
                 responseStatus = new ResponseStatus(Status.FAILURE,messageList);
                 tradeStoreResponse = new TradeStoreResponse(null,responseStatus);
@@ -102,7 +102,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
             if(CollectionUtils.isEmpty(messageList)){
                 Trade trade1 = updateTrade.apply(tradeStoreRequest.getTradeStore(),trade.get());
                 trade1 = tradeStoreManagementRepository.save(trade1);
-                messageList.add(new Message("Trade updated successfully.","200"));
+                messageList.add(new Message(TradeMessagesConstants.TRADE_UPDATE_SUCCESS_MSG,"200"));
                 responseStatus = new ResponseStatus(Status.SUCCESS,messageList);
                 List<TradeStore> tradeStoreList = new ArrayList<>();
                 tradeStoreList.add(tradeStoreRequest.getTradeStore());
@@ -113,7 +113,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
 
             trade1 = tradeStoreManagementRepository.save(trade1);
 
-            messageList.add(new Message("Trade saved successfully.","200"));
+            messageList.add(new Message(TradeMessagesConstants.TRADE_SAVE_SUCCESS_MSG,"200"));
             responseStatus = new ResponseStatus(Status.SUCCESS,messageList);
 
             List<TradeStore> tradeStoreList = new ArrayList<>();
@@ -124,18 +124,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
         return tradeStoreResponse;
     }
 
-    private boolean validateMaturityDate(TradeStore trade) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String formattedDate = simpleDateFormat.format(new Date());
-        Date requestDate = simpleDateFormat.parse(trade.getMaturityDate());
-        Date currentDate = simpleDateFormat.parse(formattedDate);
 
-        if (requestDate.after(currentDate) || requestDate.equals(currentDate)) {
-            return true;
-        }
-        return false;
-
-    }
 
     @Override
     public int autoUpdateExpiredFlag() {
