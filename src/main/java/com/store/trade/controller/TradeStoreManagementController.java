@@ -13,8 +13,8 @@ import java.text.ParseException;
 @RestController
 @CrossOrigin(origins = "*")
 @Slf4j
-/**
- * This is used to manage trades.
+/*
+  This is used to manage trades.
  */
 public class TradeStoreManagementController {
 

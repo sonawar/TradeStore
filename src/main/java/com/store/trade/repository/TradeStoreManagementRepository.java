@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface TradeStoreManagementRepository extends JpaRepository<Trade,String> {
 
 
-    String updateQuery = "update TRADE_STORE set EXPIRED='Y' where MATURITY_DATE<> CURRENT_DATE()";
+    String updateQuery = "update TRADE_STORE set EXPIRED='Y' where MATURITY_DATE < CURRENT_DATE()";
 
     @Query(value = updateQuery,nativeQuery = true)
     int autoUpdateExpiredFlag();
