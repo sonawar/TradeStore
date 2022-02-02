@@ -9,6 +9,10 @@ UserName: test
 
 Password:test
 
+# Database:
+
+H2 Database
+
 # API's:
 
 # Get All Trades:
