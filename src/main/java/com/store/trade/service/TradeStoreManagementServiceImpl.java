@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.transaction.Transactional;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,16 +110,26 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
                 tradeStoreResponse = new TradeStoreResponse(tradeStoreList,responseStatus);
             }
         }else{
-            Trade trade1 = mapTrade.apply(tradeStoreRequest.getTradeStore());
 
-            trade1 = tradeStoreManagementRepository.save(trade1);
+            if(!ValidationUtils.validateMaturityDate(tradeStoreRequest.getTradeStore())){
+                Message error = new Message(TradeMessagesConstants.MATURITY_DATE_MSG,"400");
+                messageList.add(error);
+                responseStatus = new ResponseStatus(Status.FAILURE,messageList);
+                tradeStoreResponse = new TradeStoreResponse(null,responseStatus);
+            }
 
-            messageList.add(new Message(TradeMessagesConstants.TRADE_SAVE_SUCCESS_MSG,"200"));
-            responseStatus = new ResponseStatus(Status.SUCCESS,messageList);
+            if(CollectionUtils.isEmpty(messageList)) {
+                Trade trade1 = mapTrade.apply(tradeStoreRequest.getTradeStore());
 
-            List<TradeStore> tradeStoreList = new ArrayList<>();
-            tradeStoreList.add(tradeStoreRequest.getTradeStore());
-            tradeStoreResponse = new TradeStoreResponse(tradeStoreList,responseStatus);
+                trade1 = tradeStoreManagementRepository.save(trade1);
+
+                messageList.add(new Message(TradeMessagesConstants.TRADE_SAVE_SUCCESS_MSG, "200"));
+                responseStatus = new ResponseStatus(Status.SUCCESS, messageList);
+
+                List<TradeStore> tradeStoreList = new ArrayList<>();
+                tradeStoreList.add(tradeStoreRequest.getTradeStore());
+                tradeStoreResponse = new TradeStoreResponse(tradeStoreList, responseStatus);
+            }
         }
 
         return tradeStoreResponse;
@@ -127,6 +138,7 @@ public class TradeStoreManagementServiceImpl implements  TradeStoreManagementSer
 
 
     @Override
+    @Transactional
     public int autoUpdateExpiredFlag() {
         log.info("Job is in progress....");
         return tradeStoreManagementRepository.autoUpdateExpiredFlag();
