@@ -47,7 +47,7 @@ public class TradeStoreManagementController {
         return tradeStoreResponse;
     }
 
-    @Scheduled(cron = "0 1 0 1/1 * ?")
+    @Scheduled(cron = " 1 0 0 1/1 * ?")
     void runScheduledJobForAutoUpdateExpiredFlag() {
         log.info("Auto Update scheduler started....");
         try {
